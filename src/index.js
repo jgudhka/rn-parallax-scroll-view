@@ -41,7 +41,8 @@ const IPropTypes = {
 	renderStickyHeader: func,
 	stickyHeaderHeight: number,
 	contentContainerStyle: ViewPropTypes.style,
-	outputScaleValue: number
+	outputScaleValue: number,
+	isTransform: bool
 }
 
 class ParallaxScrollView extends Component {
@@ -92,6 +93,7 @@ class ParallaxScrollView extends Component {
 			style,
 			contentContainerStyle,
 			outputScaleValue,
+			isTransform,
 			...scrollViewProps
 		} = this.props
 
@@ -122,7 +124,8 @@ class ParallaxScrollView extends Component {
 			stickyHeaderHeight,
 			backgroundColor,
 			renderFixedHeader,
-			renderStickyHeader
+			renderStickyHeader,
+			isTransform
 		})
 		const scrollElement = renderScrollComponent(scrollViewProps)
 		return (
@@ -367,19 +370,29 @@ class ParallaxScrollView extends Component {
 		stickyHeaderHeight,
 		backgroundColor,
 		renderFixedHeader,
-		renderStickyHeader
+		renderStickyHeader,
+		isTransform
 	}) {
 		const { viewWidth } = this.state
 		const { scrollY } = this
+
+		const translateY = interpolate(scrollY, {
+			inputRange: [0, stickyHeaderHeight],
+			outputRange: [-stickyHeaderHeight, 0],
+			extrapolate: 'clamp'
+		})
+
 		if (renderStickyHeader || renderFixedHeader) {
 			const p = pivotPoint(parallaxHeaderHeight, stickyHeaderHeight)
 			return (
-				<View
+				<Animated.View
 					style={[
 						styles.stickyHeader,
 						{
 							width: viewWidth,
-							...(stickyHeaderHeight ? { height: stickyHeaderHeight } : null)
+              						// transform: [{ translateY }],
+							...(stickyHeaderHeight ? { height: stickyHeaderHeight } : null),
+							...(isTransform ? {transform: [{ translateY }]} : null)
 						}
 					]}
 				>
@@ -413,7 +426,7 @@ class ParallaxScrollView extends Component {
 						</Animated.View>
 						: null}
 					{renderFixedHeader && renderFixedHeader()}
-				</View>
+				</Animated.View>
 			)
 		} else {
 			return null
@@ -436,7 +449,8 @@ ParallaxScrollView.defaultProps = {
 	renderForeground: null,
 	stickyHeaderHeight: 0,
 	contentContainerStyle: null,
-	outputScaleValue: 5
+	outputScaleValue: 5,
+	isTransform: false
 }
 
 module.exports = ParallaxScrollView
